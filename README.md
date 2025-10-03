@@ -16,10 +16,10 @@
 Dev Container を利用する場合、`.devcontainer/devcontainer.json` で [rocker/r-ver:4](https://hub.docker.com/r/rocker/r-ver) イメージを取得し、必要なパッケージをセットアップします。
 
 ## 使い方
-1. 入力 CSV に対象列（既定では `length`）が含まれていることを確認します。別のファイルや列を使う場合は、`accumulation_histgram.r` 冒頭の `csv_path` と `col_name` を変更してください。
-2. リポジトリ直下でスクリプトを実行します。
+1. 入力 CSV に対象列（既定では `length`）が含まれていることを確認します。別のファイルや列を使う場合は、`accumulation_histogram.r` 冒頭の `csv_path` と `col_name` を変更してください。
+2. リポジトリ直下のRのREPL環境でスクリプトを実行します(Rファイル内でctrl+shift+Enterでも可)。
    ```bash
-   Rscript accumulation_histgram.r
+   source("accumulation_histogram.r")
    ```
 3. スクリプトは非数値・欠損・負の値を除去し、残りを 2 の冪で定めたビンに分類します。その上で次の 2 つのグラフを生成します。
    - 1 ビンあたりの件数と、`≥ 2^n` の累積件数割合

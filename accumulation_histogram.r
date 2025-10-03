@@ -18,6 +18,7 @@ sizes <- sizes[is.finite(sizes) & !is.na(sizes) & sizes >= 0]
 if (length(sizes) == 0) stop("length 列に有効なデータがありません。")
 
 # 2 の冪で区切ったビン境界とラベルを計算
+# 欠損済みのデータに対し、少なくとも 2^0 を含む最大指数を求める
 max_exp <- ceiling(log2(max(pmax(sizes, 1))))
 exps <- 0:max_exp
 breaks <- c(0, 2^(exps + 1))
@@ -30,6 +31,7 @@ sums[is.na(sums)] <- 0
 
 # ビンごとの件数・合計と「2^n 以上」の累積割合を算出
 x_labels <- paste0("2^", exps)
+# 「しきい値以上」の件数・サイズを逆順で累積し、割合に変換
 tail_counts <- rev(cumsum(rev(counts)))
 tail_pct_cnt <- 100 * tail_counts / sum(counts)
 tail_sums <- rev(cumsum(rev(sums)))
@@ -39,6 +41,7 @@ today <- format(Sys.Date(), "%Y%m%d")
 
 size_units <- c("B", "KB", "MB", "GB", "TB", "PB", "EB")
 max_sum <- max(sums)
+# 最大値に応じて表示単位を KB/MB ... に切り替える
 if (!is.finite(max_sum) || max_sum <= 0) {
   size_unit_idx <- 0
 } else {
@@ -62,6 +65,7 @@ outfile <- paste0(img_dir, "dist_2exp_bars_", today, ".png")
 png(outfile, width = 1600, height = 800, res = 150)
 
 # 件数分布と合計サイズ分布を棒グラフと累積割合の折れ線で可視化
+# 件数・サイズの 2 つのパネルを並べて描画
 par(mfrow = c(1, 2), mar = c(8, 4, 4, 4) + 0.5)
 
 bar_pos1 <- barplot(counts,
@@ -77,6 +81,7 @@ axis(2,
   labels = format(count_ticks, big.mark = ",", trim = TRUE, scientific = FALSE),
   las = 1
 )
+# X 軸にはビンごとの「以上」割合と件数を文字列で付与
 axis(
   side = 1, at = bar_pos1,
   labels = paste0(
@@ -95,6 +100,7 @@ plot(bar_pos1, tail_pct_cnt,
 axis(4)
 mtext("≥2^n の割合（%）", side = 4, line = 3)
 
+# サイズ値を選択済み単位にスケーリング
 sums_scaled <- sums / size_divisor
 
 bar_pos2 <- barplot(sums_scaled,
@@ -110,6 +116,7 @@ axis(2,
   labels = format(sum_ticks, big.mark = ",", trim = TRUE, scientific = FALSE),
   las = 1
 )
+# X 軸にはビンごとの「以上」割合と合計サイズを表示
 axis(
   side = 1, at = bar_pos2,
   labels = paste0(

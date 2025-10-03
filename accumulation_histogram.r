@@ -6,7 +6,7 @@ jp_family <- "Noto Sans CJK JP"
 showtext_auto(enable = TRUE)
 par(family = jp_family)
 
-csv_path <- "data/test.csv"
+csv_path <- "data/fsfiles_data_20251003.csv"
 col_name <- "length"
 img_dir <- "img/"
 
@@ -42,13 +42,23 @@ outfile <- paste0(img_dir, "dist_2exp_bars_", today, ".png")
 png(outfile, width = 1600, height = 800, res = 150)
 
 # 件数分布と合計サイズ分布を棒グラフと累積割合の折れ線で可視化
-par(mfrow = c(1, 2), mar = c(6, 4, 4, 4) + 0.5)
+par(mfrow = c(1, 2), mar = c(8, 4, 4, 4) + 0.5)
 
 bar_pos1 <- barplot(counts,
   names.arg = x_labels, las = 2,
   ylab = "件数",
   main = "件数分布（2^nビン）と ≥2^n の割合",
   cex.names = 0.8
+)
+axis(
+  side = 1, at = bar_pos1,
+  labels = paste0(
+    sprintf("%.1f%%", tail_pct_cnt),
+    " (",
+    format(tail_counts, big.mark = ","),
+    "件)"
+  ),
+  line = 4, las = 2, tick = FALSE, cex.axis = 0.7
 )
 par(new = TRUE)
 plot(bar_pos1, tail_pct_cnt,
@@ -63,6 +73,16 @@ bar_pos2 <- barplot(sums,
   ylab = "合計サイズ（バイト）",
   main = "合計サイズ分布（2^nビン）と ≥2^n の割合",
   cex.names = 0.8
+)
+axis(
+  side = 1, at = bar_pos2,
+  labels = paste0(
+    sprintf("%.1f%%", tail_pct_cnt),
+    " (",
+    format(tail_counts, big.mark = ","),
+    "件)"
+  ),
+  line = 4, las = 2, tick = FALSE, cex.axis = 0.7
 )
 par(new = TRUE)
 plot(bar_pos2, tail_pct_sum,

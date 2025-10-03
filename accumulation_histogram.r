@@ -6,7 +6,7 @@ jp_family <- "Noto Sans CJK JP"
 showtext_auto(enable = TRUE)
 par(family = jp_family)
 
-csv_path <- "data/fsfiles_data_20251003.csv"
+csv_path <- "data/test.csv"
 col_name <- "length"
 img_dir <- "img/"
 

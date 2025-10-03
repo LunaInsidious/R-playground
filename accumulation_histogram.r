@@ -37,17 +37,24 @@ tail_pct_sum <- 100 * tail_sums / sum(sums)
 
 today <- format(Sys.Date(), "%Y%m%d")
 
-# バイトを適切な単位付き文字列に変換
-format_bytes <- function(bytes) {
-  if (!is.finite(bytes) || bytes <= 0) {
-    return("0 B")
+size_units <- c("B", "KB", "MB", "GB", "TB", "PB", "EB")
+max_sum <- max(sums)
+if (!is.finite(max_sum) || max_sum <= 0) {
+  size_unit_idx <- 0
+} else {
+  size_unit_idx <- floor(log(max_sum, 1024))
+  size_unit_idx <- max(0, min(size_unit_idx, length(size_units) - 1))
+}
+size_unit <- size_units[size_unit_idx + 1]
+size_divisor <- 1024^size_unit_idx
+
+format_size <- function(bytes) {
+  scaled <- bytes / size_divisor
+  if (!is.finite(scaled) || scaled <= 0) {
+    return("0")
   }
-  units <- c("B", "KB", "MB", "GB", "TB", "PB", "EB")
-  exp <- floor(log(bytes, 1024))
-  exp <- max(0, min(exp, length(units) - 1))
-  scaled <- bytes / (1024^exp)
-  digits <- ifelse(scaled >= 100, 0, ifelse(scaled >= 10, 1, 2))
-  sprintf(paste0("%.", digits, "f %s"), scaled, units[exp + 1])
+  digits <- ifelse(scaled >= 100, 1, ifelse(scaled >= 10, 2, 3))
+  formatC(scaled, format = "f", digits = digits, big.mark = ",", decimal.mark = ".")
 }
 
 # 出力ファイル名を作成
@@ -61,7 +68,14 @@ bar_pos1 <- barplot(counts,
   names.arg = x_labels, las = 2,
   ylab = "件数",
   main = "件数分布（2^nビン）と ≥2^n の割合",
-  cex.names = 0.8
+  cex.names = 0.8,
+  axes = FALSE
+)
+count_ticks <- pretty(c(0, counts))
+axis(2,
+  at = count_ticks,
+  labels = format(count_ticks, big.mark = ",", trim = TRUE, scientific = FALSE),
+  las = 1
 )
 axis(
   side = 1, at = bar_pos1,
@@ -81,18 +95,27 @@ plot(bar_pos1, tail_pct_cnt,
 axis(4)
 mtext("≥2^n の割合（%）", side = 4, line = 3)
 
-bar_pos2 <- barplot(sums,
+sums_scaled <- sums / size_divisor
+
+bar_pos2 <- barplot(sums_scaled,
   names.arg = x_labels, las = 2,
-  ylab = "合計サイズ（バイト）",
+  ylab = paste0("合計サイズ（", size_unit, "）"),
   main = "合計サイズ分布（2^nビン）と ≥2^n の割合",
-  cex.names = 0.8
+  cex.names = 0.8,
+  axes = FALSE
+)
+sum_ticks <- pretty(c(0, sums_scaled))
+axis(2,
+  at = sum_ticks,
+  labels = format(sum_ticks, big.mark = ",", trim = TRUE, scientific = FALSE),
+  las = 1
 )
 axis(
   side = 1, at = bar_pos2,
   labels = paste0(
     sprintf("%.1f%%", tail_pct_sum),
     " (",
-    vapply(tail_sums, format_bytes, character(1)),
+    vapply(tail_sums, function(x) paste0(format_size(x), " ", size_unit), character(1)),
     ")"
   ),
   line = 4, las = 2, tick = FALSE, cex.axis = 0.7

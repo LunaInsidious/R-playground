@@ -37,6 +37,19 @@ tail_pct_sum <- 100 * tail_sums / sum(sums)
 
 today <- format(Sys.Date(), "%Y%m%d")
 
+# バイトを適切な単位付き文字列に変換
+format_bytes <- function(bytes) {
+  if (!is.finite(bytes) || bytes <= 0) {
+    return("0 B")
+  }
+  units <- c("B", "KB", "MB", "GB", "TB", "PB", "EB")
+  exp <- floor(log(bytes, 1024))
+  exp <- max(0, min(exp, length(units) - 1))
+  scaled <- bytes / (1024^exp)
+  digits <- ifelse(scaled >= 100, 0, ifelse(scaled >= 10, 1, 2))
+  sprintf(paste0("%.", digits, "f %s"), scaled, units[exp + 1])
+}
+
 # 出力ファイル名を作成
 outfile <- paste0(img_dir, "dist_2exp_bars_", today, ".png")
 png(outfile, width = 1600, height = 800, res = 150)
@@ -77,10 +90,10 @@ bar_pos2 <- barplot(sums,
 axis(
   side = 1, at = bar_pos2,
   labels = paste0(
-    sprintf("%.1f%%", tail_pct_cnt),
+    sprintf("%.1f%%", tail_pct_sum),
     " (",
-    format(tail_counts, big.mark = ","),
-    "件)"
+    vapply(tail_sums, format_bytes, character(1)),
+    ")"
   ),
   line = 4, las = 2, tick = FALSE, cex.axis = 0.7
 )
